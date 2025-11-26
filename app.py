@@ -2,6 +2,7 @@
 from flask import Flask, jsonify, request
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
+from models import User,Post
 
 from config import Config
 
@@ -44,11 +45,16 @@ def create_app(test_config=None):
         TODO: Students should query ``User`` objects, serialize them to JSON,
         and handle incoming POST data to create new users.
         """
-
-        return (
-            jsonify({"message": "TODO: implement user listing/creation"}),
-            501,
-        )
+        if request.method == "POST":
+            data = request.json
+            new_user = User(username=data["username"])
+            db.session.add(new_user)
+            db.session.commit()
+        users=User.query.all()
+        return jsonify({
+            "message": "liste des users",
+            "users": [u.username for u in users]
+        })
 
     @app.route("/posts", methods=["GET", "POST"])
     def posts():
@@ -57,11 +63,20 @@ def create_app(test_config=None):
         TODO: Students should query ``Post`` objects, include user data, and
         allow creating posts tied to a valid ``user_id``.
         """
-
-        return (
-            jsonify({"message": "TODO: implement post listing/creation"}),
-            501,
+        if request.method == "POST":
+            data = request.json
+            new_post = Post(
+                title=data["title"],
+                content=data["content"],
+                user_id=data["user_id"]
         )
+            db.session.add(new_post)
+            db.session.commit()
+        posts=Post.query.all()
+        return jsonify({
+            "message": "liste des posts",
+            "posts": [p.title for p in posts]
+        })
 
     return app
 
